@@ -12,7 +12,7 @@ export default function TelemetryDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const JAEGER_API = "http://localhost:16686/api/traces?service=naive-dfs-control-plane&limit=10";
+  const JAEGER_API = "/jaeger-api/traces?service=naive-dfs-control-plane&limit=10";
 
   useEffect(() => {
     fetchTraces();
