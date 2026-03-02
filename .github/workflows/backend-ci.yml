@@ -1,0 +1,32 @@
+name: Java CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B clean package -DskipTests
+
+      # Note: Tests are currently skipped via -DskipTests since the project relies on heavily containerized
+      # Integration testing. In the future, unit tests should be separated so they can run here.
+      - name: Run Tests (if applicable)
+        run: |
+          # Optional: if you add standalone unit tests that do not require full cluster up,
+          # run them here using 'mvn test'
+          echo "Tests are currently verified via integration scripts locally."

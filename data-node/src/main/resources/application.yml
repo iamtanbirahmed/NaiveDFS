@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: naivedfs-datanode
+
+grpc:
+  server:
+    port: ${GRPC_PORT:9091}
+    max-inbound-message-size: 150000000
+  client:
+    naivedfs.master:
+      address: static://${MASTER_HOST:localhost}:${MASTER_PORT:9090}
+      negotiation-type: plaintext
+
+naivedfs:
+  master:
+    host: ${MASTER_HOST:localhost}
+    port: ${MASTER_PORT:9090}
+  datanode:
+    storage-path: ./data/blocks-${GRPC_PORT:9091}
+
+logging:
+  level:
+    com.naivedfs: DEBUG

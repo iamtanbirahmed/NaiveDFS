@@ -1,0 +1,130 @@
+syntax = "proto3";
+
+package naivedfs;
+
+option java_multiple_files = true;
+option java_package = "com.naivedfs.grpc";
+option java_outer_classname = "NaiveDfsProto";
+
+// ============================================
+// DataNode <-> Master Services
+// ============================================
+
+service DataNodeToMasterService {
+  rpc RegisterDataNode (RegisterRequest) returns (RegisterResponse);
+  rpc SendHeartbeat (HeartbeatRequest) returns (HeartbeatResponse);
+  rpc SendBlockReport (BlockReportRequest) returns (BlockReportResponse);
+}
+
+message RegisterRequest {
+  string data_node_id = 1;
+  string ip_address = 2;
+  int32 port = 3;
+}
+
+message RegisterResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message HeartbeatRequest {
+  string data_node_id = 1;
+  int64 free_space_bytes = 2;
+}
+
+message HeartbeatResponse {
+  // Master can send asynchronous commands back in heartbeat response
+  repeated BlockCommand commands = 1;
+}
+
+enum CommandType {
+  REPLICATE = 0;
+  DELETE = 1;
+}
+
+message BlockCommand {
+  CommandType type = 1;
+  string block_id = 2;
+  repeated DataNodeInfo targets = 3; // for replication
+}
+
+message BlockReportRequest {
+  string data_node_id = 1;
+  repeated string block_ids = 2;
+}
+
+message BlockReportResponse {
+  bool success = 1;
+}
+
+// ============================================
+// ControlPlane <-> Master Services
+// ============================================
+
+service ClientToMasterService {
+  rpc CreateFile (CreateFileRequest) returns (FileLocationResponse);
+  rpc GetFileLocation (GetFileRequest) returns (FileLocationResponse);
+}
+
+message CreateFileRequest {
+  string filename = 1;
+  int64 file_size_bytes = 2;
+}
+
+message GetFileRequest {
+  string filename = 1;
+}
+
+message FileLocationResponse {
+  bool success = 1;
+  string message = 2;
+  repeated BlockLocation blocks = 3;
+}
+
+message BlockLocation {
+  string block_id = 1;
+  int64 block_size = 2;
+  DataNodeInfo leader_node = 3;
+  repeated DataNodeInfo follower_nodes = 4;
+}
+
+message DataNodeInfo {
+  string data_node_id = 1;
+  string ip_address = 2;
+  int32 port = 3;
+}
+
+// ============================================
+// Client/DataNode <-> DataNode Services
+// ============================================
+
+service DataNodeService {
+  rpc WriteBlock (stream WriteBlockRequest) returns (WriteBlockResponse);
+  rpc ReadBlock (ReadBlockRequest) returns (stream ReadBlockResponse);
+}
+
+message WriteBlockRequest {
+  // The first message will contain the metadata, subsequent messages contain the chunk data
+  oneof payload {
+    BlockMetadata metadata = 1;
+    bytes chunk_data = 2;
+  }
+}
+
+message BlockMetadata {
+  string block_id = 1;
+  repeated DataNodeInfo follower_nodes = 2;
+}
+
+message WriteBlockResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ReadBlockRequest {
+  string block_id = 1;
+}
+
+message ReadBlockResponse {
+  bytes chunk_data = 1;
+}

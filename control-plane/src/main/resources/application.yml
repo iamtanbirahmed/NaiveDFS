@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: naivedfs-controlplane
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+
+server:
+  port: 8080
+
+grpc:
+  client:
+    naivedfs.datanode:
+      negotiation-type: plaintext
+      max-inbound-message-size: 150000000
+
+naivedfs:
+  master:
+    host: localhost
+    port: 9090
+
+logging:
+  level:
+    com.naivedfs: DEBUG

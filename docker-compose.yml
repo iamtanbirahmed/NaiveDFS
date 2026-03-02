@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+    networks:
+      - naivedfs_net
+
+  master:
+    build:
+      context: ./master
+      dockerfile: Dockerfile
+    container_name: naivedfs-master
+    ports:
+      - "9090:9090"
+    volumes:
+      - master_data:/app/data
+    environment:
+      - naivedfs.master.wal-path=/app/data/master-wal.log
+      - OTEL_SERVICE_NAME=naive-dfs-master
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+
+  data-node-1:
+    build:
+      context: ./data-node
+      dockerfile: Dockerfile
+    container_name: naivedfs-data-node-1
+    depends_on:
+      - master
+    ports:
+      - "9091:9091"
+    volumes:
+      - dn1_data:/app/data/blocks
+    environment:
+      - GRPC_PORT=9091
+      - MASTER_HOST=master
+      - MASTER_PORT=9090
+      - naivedfs.datanode.storage-path=/app/data/blocks
+      - JAVA_TOOL_OPTIONS=-Xmx1500m
+      - OTEL_SERVICE_NAME=naive-dfs-datanode-1
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+
+  data-node-2:
+    build:
+      context: ./data-node
+      dockerfile: Dockerfile
+    container_name: naivedfs-data-node-2
+    depends_on:
+      - master
+    ports:
+      - "9092:9092"
+    volumes:
+      - dn2_data:/app/data/blocks
+    environment:
+      - GRPC_PORT=9092
+      - MASTER_HOST=master
+      - MASTER_PORT=9090
+      - naivedfs.datanode.storage-path=/app/data/blocks
+      - JAVA_TOOL_OPTIONS=-Xmx1500m
+      - OTEL_SERVICE_NAME=naive-dfs-datanode-2
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+
+  data-node-3:
+    build:
+      context: ./data-node
+      dockerfile: Dockerfile
+    container_name: naivedfs-data-node-3
+    depends_on:
+      - master
+    ports:
+      - "9093:9093"
+    volumes:
+      - dn3_data:/app/data/blocks
+    environment:
+      - GRPC_PORT=9093
+      - MASTER_HOST=master
+      - MASTER_PORT=9090
+      - naivedfs.datanode.storage-path=/app/data/blocks
+      - JAVA_TOOL_OPTIONS=-Xmx1500m
+      - OTEL_SERVICE_NAME=naive-dfs-datanode-3
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+
+  control-plane:
+    build:
+      context: ./control-plane
+      dockerfile: Dockerfile
+    container_name: naivedfs-control-plane
+    depends_on:
+      - master
+    ports:
+      - "8080:8080"
+    environment:
+      - naivedfs.master.host=master
+      - naivedfs.master.port=9090
+      - JAVA_TOOL_OPTIONS=-Xmx1500m
+      - OTEL_SERVICE_NAME=naive-dfs-control-plane
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+
+volumes:
+  master_data:
+  dn1_data:
+  dn2_data:
+  dn3_data:
+
+networks:
+  naivedfs_net:
+    driver: bridge
