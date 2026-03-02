@@ -5,8 +5,14 @@
 </p>
 
 <p align="center">
-  <img src="./banner.png" alt="NaiveDFS Banner" width="100%" />
+  <a href="https://github.com/iamtanbirahmed/NaiveDFS/actions/workflows/backend-ci.yml"><img src="https://github.com/iamtanbirahmed/NaiveDFS/actions/workflows/backend-ci.yml/badge.svg" alt="Java CI" /></a>
+  <a href="https://github.com/iamtanbirahmed/NaiveDFS/actions/workflows/frontend-ci.yml"><img src="https://github.com/iamtanbirahmed/NaiveDFS/actions/workflows/frontend-ci.yml/badge.svg" alt="Next.js CI" /></a>
+  <img src="https://img.shields.io/badge/Java-17-orange.svg" alt="Java 17" />
+  <img src="https://img.shields.io/badge/Spring%20Boot-3.0-brightgreen.svg" alt="Spring Boot 3" />
+  <img src="https://img.shields.io/badge/Next.js-14-black.svg" alt="Next.js" />
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
 </p>
+
 NaiveDFS is a high-availability, distributed file system written in Java (Spring Boot) inspired by architectures like Hadoop HDFS. It stores large files by breaking them down into chunks and replicating them across multiple storage nodes for fault tolerance.
 
 The project features a Master node for managing metadata, Data nodes for storing chunks with replication, a Control Plane for the client API, and a beautiful React/Next.js frontend for interacting with the cluster.
