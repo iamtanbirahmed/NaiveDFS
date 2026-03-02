@@ -6,7 +6,9 @@ import Link from "next/link";
 import { Activity, Server, Clock, ServerCog, Database, ArrowRight } from "lucide-react";
 
 export default function TelemetryDashboard() {
-  const [traces, setTraces] = useState<unknown[]>([]);
+  const [traces, setTraces] = useState<
+    { traceID: string; spans: { duration: number; startTime: number }[]; processes: Record<string, unknown> }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -86,66 +88,75 @@ export default function TelemetryDashboard() {
         </div>
       ) : (
         <div className="space-y-6">
-          {traces.map((trace: any, idx) => {
-            const durationMs = (trace.spans[0].duration / 1000).toFixed(2);
-            const numSpans = trace.spans.length;
-            const startTime = new Date(trace.spans[0].startTime / 1000).toLocaleTimeString();
-            const processMap = trace.processes;
+          {traces.map(
+            (
+              trace: {
+                traceID: string;
+                spans: { duration: number; startTime: number }[];
+                processes: Record<string, unknown>;
+              },
+              idx,
+            ) => {
+              const durationMs = (trace.spans[0].duration / 1000).toFixed(2);
+              const numSpans = trace.spans.length;
+              const startTime = new Date(trace.spans[0].startTime / 1000).toLocaleTimeString();
+              const processMap = trace.processes;
 
-            // Extract unique services involved in this trace
-            const servicesInvolved = Array.from(
-              new Set(Object.values(processMap).map((p: unknown) => (p as { serviceName: string }).serviceName)),
-            );
+              // Extract unique services involved in this trace
+              const servicesInvolved = Array.from(
+                new Set(Object.values(processMap).map((p: unknown) => (p as { serviceName: string }).serviceName)),
+              );
 
-            return (
-              <div
-                key={trace.traceID}
-                className="glass-card p-6 rounded-2xl animate-fade-in-up transition-all hover:border-indigo-500/30 hover:bg-slate-800/60"
-                style={{ animationDelay: `${idx * 100}ms` }}
-              >
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 pb-6 border-b border-slate-700/50">
-                  <div>
-                    <h3 className="text-xl font-bold text-white mb-2 font-mono text-sm break-all">
-                      Trace: {trace.traceID.substring(0, 16)}...
-                    </h3>
-                    <div className="flex items-center gap-4 text-sm text-slate-400">
-                      <span className="flex items-center gap-1.5">
-                        <Clock size={16} /> {startTime}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700">
-                        {numSpans} spans
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-4 md:mt-0 text-right">
-                    <div className="text-3xl font-light text-indigo-400">
-                      {durationMs} <span className="text-lg text-indigo-400/50">ms</span>
-                    </div>
-                    <p className="text-sm text-slate-500">Total Duration</p>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-                    Services Involved
-                  </h4>
-                  <div className="flex flex-wrap gap-2 items-center">
-                    {servicesInvolved.map((serviceName: string, i) => (
-                      <div key={serviceName} className="flex items-center">
-                        <span
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm ${getServiceColor(serviceName)}`}
-                        >
-                          {getServiceIcon(serviceName)}
-                          {serviceName}
+              return (
+                <div
+                  key={trace.traceID}
+                  className="glass-card p-6 rounded-2xl animate-fade-in-up transition-all hover:border-indigo-500/30 hover:bg-slate-800/60"
+                  style={{ animationDelay: `${idx * 100}ms` }}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 pb-6 border-b border-slate-700/50">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 font-mono text-sm break-all">
+                        Trace: {trace.traceID.substring(0, 16)}...
+                      </h3>
+                      <div className="flex items-center gap-4 text-sm text-slate-400">
+                        <span className="flex items-center gap-1.5">
+                          <Clock size={16} /> {startTime}
                         </span>
-                        {i < servicesInvolved.length - 1 && <ArrowRight size={16} className="text-slate-600 mx-2" />}
+                        <span className="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700">
+                          {numSpans} spans
+                        </span>
                       </div>
-                    ))}
+                    </div>
+                    <div className="mt-4 md:mt-0 text-right">
+                      <div className="text-3xl font-light text-indigo-400">
+                        {durationMs} <span className="text-lg text-indigo-400/50">ms</span>
+                      </div>
+                      <p className="text-sm text-slate-500">Total Duration</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                      Services Involved
+                    </h4>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {servicesInvolved.map((serviceName: string, i) => (
+                        <div key={serviceName} className="flex items-center">
+                          <span
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm ${getServiceColor(serviceName)}`}
+                          >
+                            {getServiceIcon(serviceName)}
+                            {serviceName}
+                          </span>
+                          {i < servicesInvolved.length - 1 && <ArrowRight size={16} className="text-slate-600 mx-2" />}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            },
+          )}
         </div>
       )}
     </div>
