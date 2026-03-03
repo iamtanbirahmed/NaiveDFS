@@ -2,11 +2,43 @@
 
 import { useState, useRef } from "react";
 import axios from "axios";
-import { Upload, Download, File, AlertCircle, CheckCircle2, Server, FolderUp, Activity } from "lucide-react";
+import {
+  Upload,
+  Download,
+  File,
+  AlertCircle,
+  CheckCircle2,
+  Server,
+  FolderUp,
+  Activity,
+  Network,
+  Layers,
+  Database,
+} from "lucide-react";
+
+interface NodeInfo {
+  id: string;
+  ip: string;
+  port: number;
+}
+
+interface BlockInfo {
+  blockId: string;
+  blockSize: number;
+  leaderNode: NodeInfo;
+  followerNodes: NodeInfo[];
+}
+
+interface FileMetadata {
+  filename: string;
+  blocks: BlockInfo[];
+}
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [downloadName, setDownloadName] = useState("");
+  const [metadataFilename, setMetadataFilename] = useState("");
+  const [fileMetadata, setFileMetadata] = useState<FileMetadata | null>(null);
   const [status, setStatus] = useState<{ type: "idle" | "loading" | "success" | "error"; message: string }>({
     type: "idle",
     message: "",
@@ -100,6 +132,27 @@ export default function Home() {
         type: "error",
         message: `File not found or cluster error: ${(err as { message?: string }).message}`,
       });
+    }
+  };
+
+  const fetchMetadata = async () => {
+    if (!metadataFilename.trim()) {
+      setStatus({ type: "error", message: "Please enter a filename to explore." });
+      return;
+    }
+    setStatus({ type: "loading", message: `Fetching block metadata for '${metadataFilename}'...` });
+    try {
+      const response = await axios.get(`${API_URL}/metadata`, {
+        params: { filename: metadataFilename },
+      });
+      setFileMetadata(response.data);
+      setStatus({ type: "success", message: `Successfully loaded map for '${metadataFilename}'` });
+    } catch (err: unknown) {
+      setStatus({
+        type: "error",
+        message: `Failed to load metadata: ${(err as { message?: string }).message}`,
+      });
+      setFileMetadata(null);
     }
   };
 
@@ -202,6 +255,95 @@ export default function Home() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Live Fragmentation Explorer */}
+      <div
+        className="w-full max-w-5xl mt-8 glass-card p-8 animate-fade-in-up flex flex-col"
+        style={{ animationDelay: "250ms" }}
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+            <Network size={24} />
+          </div>
+          <h2 className="text-2xl font-bold text-white">Live Fragmentation Explorer</h2>
+        </div>
+
+        <p className="text-slate-400 mb-6">
+          See exactly how files are chunked into 1KB blocks and distributed across the DataNodes in real-time.
+        </p>
+
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-grow">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <File size={18} className="text-slate-500" />
+            </div>
+            <input
+              type="text"
+              placeholder="Filename to inspect (e.g., test.txt)"
+              value={metadataFilename}
+              onChange={(e) => setMetadataFilename(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+            />
+          </div>
+          <button
+            onClick={fetchMetadata}
+            disabled={!metadataFilename || status.type === "loading"}
+            className="py-4 px-8 rounded-xl font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+          >
+            Draw Map
+          </button>
+        </div>
+
+        {fileMetadata && (
+          <div className="animate-fade-in-up">
+            <div className="flex items-center gap-2 mb-4 p-4 rounded-xl bg-slate-800/50 border border-slate-700">
+              <Layers className="text-emerald-400" size={20} />
+              <span className="text-white font-medium">File: {fileMetadata.filename}</span>
+              <span className="text-slate-400 ml-auto">{fileMetadata.blocks.length} Total Blocks</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {fileMetadata.blocks.map((block: BlockInfo, idx: number) => (
+                <div
+                  key={block.blockId}
+                  className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/60 transition-colors"
+                >
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-xs font-bold px-2 py-1 rounded bg-slate-700 text-slate-300">
+                      Block {idx + 1}
+                    </span>
+                    <span className="text-xs text-slate-400">{block.blockSize} bytes</span>
+                  </div>
+
+                  <div className="text-[10px] font-mono text-slate-500 mb-4 truncate" title={block.blockId}>
+                    ID: {block.blockId}
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm bg-blue-500/10 border border-blue-500/20 p-2 rounded-lg">
+                      <Server size={14} className="text-blue-400" />
+                      <span className="text-blue-100 font-medium text-xs truncate">Leader: {block.leaderNode.id}</span>
+                    </div>
+
+                    {block.followerNodes.map((fn: NodeInfo) => (
+                      <div
+                        key={fn.id}
+                        className="flex items-center gap-2 text-sm bg-purple-500/10 border border-purple-500/20 p-2 rounded-lg pl-6 relative"
+                      >
+                        {/* Connecting line simulating a tree/graph */}
+                        <div className="absolute left-3.5 top-[-10px] bottom-1/2 w-px bg-slate-600"></div>
+                        <div className="absolute left-3.5 top-1/2 w-2 h-px bg-slate-600"></div>
+                        <Database size={12} className="text-purple-400" />
+                        <span className="text-purple-100/80 text-xs truncate">Replica: {fn.id}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Status Indicators */}

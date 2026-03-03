@@ -18,7 +18,7 @@ import java.util.UUID;
 public class ClientToMasterServiceImpl extends ClientToMasterServiceGrpc.ClientToMasterServiceImplBase {
 
   private static final Logger log = LoggerFactory.getLogger(ClientToMasterServiceImpl.class);
-  private static final long BLOCK_SIZE = 128 * 1024 * 1024; // 128MB
+  private static final long BLOCK_SIZE = 1024L; // 1KB
   private static final int REPLICATION_FACTOR = 3;
 
   private final DataNodeRegistry dataNodeRegistry;

@@ -29,7 +29,7 @@ import java.util.concurrent.CountDownLatch;
 @CrossOrigin(origins = "*")
 public class FileController {
   private static final Logger log = LoggerFactory.getLogger(FileController.class);
-  private static final int BLOCK_SIZE = 128 * 1024 * 1024; // 128MB
+  private static final int BLOCK_SIZE = 1024; // 1KB
 
   @Value("${naivedfs.master.host:localhost}")
   private String masterHost;
@@ -160,6 +160,48 @@ public class FileController {
       throw new IOException("Failed to write block " + blockLoc.getBlockId() + " to DataNode");
     }
     log.info("Successfully wrote block {} to DataNode {}", blockLoc.getBlockId(), leader.getDataNodeId());
+  }
+
+  @GetMapping("/metadata")
+  public ResponseEntity<?> getFileMetadata(@RequestParam("filename") String filename) {
+    GetFileRequest req = GetFileRequest.newBuilder()
+        .setFilename(filename)
+        .build();
+
+    FileLocationResponse res = masterStub.getFileLocation(req);
+    if (!res.getSuccess()) {
+      return ResponseEntity.notFound().build();
+    }
+
+    List<java.util.Map<String, Object>> blockMetadata = res.getBlocksList().stream().map(blockLoc -> {
+      java.util.Map<String, Object> map = new java.util.HashMap<>();
+      map.put("blockId", blockLoc.getBlockId());
+      map.put("blockSize", blockLoc.getBlockSize());
+
+      java.util.Map<String, Object> leader = new java.util.HashMap<>();
+      leader.put("id", blockLoc.getLeaderNode().getDataNodeId());
+      leader.put("ip", blockLoc.getLeaderNode().getIpAddress());
+      leader.put("port", blockLoc.getLeaderNode().getPort());
+      map.put("leaderNode", leader);
+
+      List<java.util.Map<String, Object>> followers = blockLoc.getFollowerNodesList().stream().map(fn -> {
+        java.util.Map<String, Object> fmap = new java.util.HashMap<>();
+        fmap.put("id", fn.getDataNodeId());
+        fmap.put("ip", fn.getIpAddress());
+        fmap.put("port", fn.getPort());
+        return fmap;
+      }).toList();
+
+      map.put("followerNodes", followers);
+      return map;
+    }).toList();
+
+    java.util.Map<String, Object> response = new java.util.HashMap<>();
+    response.put("filename", filename);
+    response.put("success", true);
+    response.put("blocks", blockMetadata);
+
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping("/download")
