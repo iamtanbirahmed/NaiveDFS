@@ -24,6 +24,7 @@ Always use Conventional Commits with specific scopes whenever possible. Your com
 - **Creating new branches:** Always create a new branch from the repository's default branch (`main` or `master`).
 - **Confirmation:** You MUST ask for confirmation before creating a new branch.
 - **Default usage:** If the user does not specify a branch name or new branch workflow, commit the changes directly to the current active branch.
+- **Main Branch Commits:** You MUST ALWAYS ask for explicit confirmation before committing directly to the `main` or `master` branch.
 
 ## 3. Pre-Commit Workflow
 
