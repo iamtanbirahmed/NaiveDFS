@@ -151,4 +151,17 @@ public class ClientToMasterServiceImpl extends ClientToMasterServiceGrpc.ClientT
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
+
+  @Override
+  public void listFiles(Empty request, StreamObserver<FileListResponse> responseObserver) {
+    java.util.Set<String> files = metadataStore.getAllFiles();
+
+    FileListResponse response = FileListResponse.newBuilder()
+        .setSuccess(true)
+        .addAllFilenames(files)
+        .build();
+
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
 }

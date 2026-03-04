@@ -64,6 +64,14 @@ message BlockReportResponse {
 service ClientToMasterService {
   rpc CreateFile (CreateFileRequest) returns (FileLocationResponse);
   rpc GetFileLocation (GetFileRequest) returns (FileLocationResponse);
+  rpc ListFiles (Empty) returns (FileListResponse);
+}
+
+message Empty {}
+
+message FileListResponse {
+  bool success = 1;
+  repeated string filenames = 2;
 }
 
 message CreateFileRequest {

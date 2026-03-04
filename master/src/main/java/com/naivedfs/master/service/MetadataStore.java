@@ -66,6 +66,10 @@ public class MetadataStore implements WalManager.WalReplayHandler {
     return fileToBlocksMap.containsKey(filename);
   }
 
+  public java.util.Set<String> getAllFiles() {
+    return fileToBlocksMap.keySet();
+  }
+
   public List<String> getFileBlocks(String filename) {
     return fileToBlocksMap.get(filename);
   }

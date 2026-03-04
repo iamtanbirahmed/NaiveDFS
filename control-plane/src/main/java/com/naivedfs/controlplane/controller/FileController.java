@@ -2,6 +2,7 @@ package com.naivedfs.controlplane.controller;
 
 import com.google.protobuf.ByteString;
 import com.naivedfs.grpc.*;
+import com.naivedfs.grpc.Empty;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
@@ -254,6 +255,23 @@ public class FileController {
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
         .body(resource);
+  }
+
+  @GetMapping("/list")
+  public ResponseEntity<java.util.Map<String, Object>> listFiles() {
+    log.info("Fetching list of all files from Master");
+
+    FileListResponse listRes = masterStub.listFiles(Empty.newBuilder().build());
+
+    if (!listRes.getSuccess()) {
+      return ResponseEntity.internalServerError().body(java.util.Map.of(
+          "success", false,
+          "message", "Failed to retrieve file list"));
+    }
+
+    return ResponseEntity.ok(java.util.Map.of(
+        "success", true,
+        "files", listRes.getFilenamesList()));
   }
 
   @PreDestroy
