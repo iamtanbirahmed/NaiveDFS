@@ -66,9 +66,16 @@ service ClientToMasterService {
   rpc GetFileLocation (GetFileRequest) returns (FileLocationResponse);
   rpc ListFiles (Empty) returns (FileListResponse);
   rpc GetNodeDetails (NodeDetailsRequest) returns (NodeDetailsResponse);
+  rpc GetClusterStatus (Empty) returns (ClusterStatusResponse);
 }
 
 message Empty {}
+
+message ClusterStatusResponse {
+  bool success = 1;
+  string message = 2;
+  repeated DataNodeInfo active_nodes = 3;
+}
 
 message FileListResponse {
   bool success = 1;

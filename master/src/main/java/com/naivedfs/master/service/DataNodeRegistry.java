@@ -31,14 +31,16 @@ public class DataNodeRegistry {
         log.info("Registered DataNode: {} at {}:{}", nodeId, ipAddress, port);
     }
 
-    public void updateHeartbeat(String nodeId, long freeSpaceBytes) {
+    public boolean updateHeartbeat(String nodeId, long freeSpaceBytes) {
         DataNodeState state = dataNodes.get(nodeId);
         if (state != null) {
             state.lastHeartbeat = Instant.now();
             state.freeSpaceBytes = freeSpaceBytes;
             log.debug("Heartbeat received from DataNode: {}. Free space: {} bytes", nodeId, freeSpaceBytes);
+            return true;
         } else {
             log.warn("Heartbeat received from unknown DataNode: {}. Please register first.", nodeId);
+            return false;
         }
     }
 

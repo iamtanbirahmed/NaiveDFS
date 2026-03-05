@@ -19,23 +19,30 @@ public class DataNodeToMasterServiceImpl extends DataNodeToMasterServiceGrpc.Dat
     @Override
     public void registerDataNode(RegisterRequest request, StreamObserver<RegisterResponse> responseObserver) {
         dataNodeRegistry.registerNode(request.getDataNodeId(), request.getIpAddress(), request.getPort());
-        
+
         RegisterResponse response = RegisterResponse.newBuilder()
                 .setSuccess(true)
                 .setMessage("Registered successfully")
                 .build();
-        
+
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
 
     @Override
     public void sendHeartbeat(HeartbeatRequest request, StreamObserver<HeartbeatResponse> responseObserver) {
-        dataNodeRegistry.updateHeartbeat(request.getDataNodeId(), request.getFreeSpaceBytes());
-        
+        boolean known = dataNodeRegistry.updateHeartbeat(request.getDataNodeId(), request.getFreeSpaceBytes());
+
+        if (!known) {
+            responseObserver.onError(io.grpc.Status.NOT_FOUND
+                    .withDescription("DataNode not registered")
+                    .asRuntimeException());
+            return;
+        }
+
         // For now, return an empty response (no commands like replicate/delete yet)
         HeartbeatResponse response = HeartbeatResponse.newBuilder().build();
-        
+
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
@@ -43,11 +50,11 @@ public class DataNodeToMasterServiceImpl extends DataNodeToMasterServiceGrpc.Dat
     @Override
     public void sendBlockReport(BlockReportRequest request, StreamObserver<BlockReportResponse> responseObserver) {
         // TODO: Handle block reports to map blocks to DataNodes
-        
+
         BlockReportResponse response = BlockReportResponse.newBuilder()
                 .setSuccess(true)
                 .build();
-        
+
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }

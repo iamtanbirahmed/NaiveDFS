@@ -208,4 +208,18 @@ public class ClientToMasterServiceImpl extends ClientToMasterServiceGrpc.ClientT
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
+
+  @Override
+  public void getClusterStatus(Empty request, StreamObserver<ClusterStatusResponse> responseObserver) {
+    List<DataNodeInfo> activeNodes = dataNodeRegistry.getActiveDataNodes();
+
+    ClusterStatusResponse response = ClusterStatusResponse.newBuilder()
+        .setSuccess(true)
+        .setMessage("Cluster status retrieved successfully")
+        .addAllActiveNodes(activeNodes)
+        .build();
+
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
 }

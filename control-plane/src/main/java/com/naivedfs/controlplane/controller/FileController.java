@@ -314,6 +314,40 @@ public class FileController {
     }
   }
 
+  @GetMapping("/nodes")
+  public ResponseEntity<java.util.Map<String, Object>> getClusterNodes() {
+    log.info("Fetching cluster node status");
+
+    try {
+      ClusterStatusResponse res = masterStub.getClusterStatus(Empty.newBuilder().build());
+
+      if (!res.getSuccess()) {
+        return ResponseEntity.status(500).body(java.util.Map.of(
+            "success", false,
+            "message", res.getMessage()));
+      }
+
+      List<java.util.Map<String, Object>> nodesList = new java.util.ArrayList<>();
+      for (DataNodeInfo node : res.getActiveNodesList()) {
+        nodesList.add(java.util.Map.of(
+            "nodeId", node.getDataNodeId(),
+            "ipAddress", node.getIpAddress(),
+            "port", node.getPort(),
+            "status", "OK"));
+      }
+
+      return ResponseEntity.ok(java.util.Map.of(
+          "success", true,
+          "nodes", nodesList));
+
+    } catch (Exception e) {
+      log.error("Failed to fetch cluster status", e);
+      return ResponseEntity.status(500).body(java.util.Map.of(
+          "success", false,
+          "message", "Failed to fetch cluster status: " + e.getMessage()));
+    }
+  }
+
   @PreDestroy
   public void shutdown() {
     if (masterChannel != null) {

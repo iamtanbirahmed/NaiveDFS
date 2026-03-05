@@ -38,6 +38,9 @@ export default function Home() {
     }[]
   >([]);
   const [loadingTraces, setLoadingTraces] = useState(true);
+  const [clusterNodes, setClusterNodes] = useState<
+    { nodeId: string; ipAddress: string; port: number; status: string }[]
+  >([]);
 
   const [status, setStatus] = useState<{ type: "idle" | "loading" | "success" | "error"; message: string }>({
     type: "idle",
@@ -88,12 +91,25 @@ export default function Home() {
       }
     };
 
+    const fetchNodes = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/nodes`);
+        if (response.data && response.data.success && isMounted) {
+          setClusterNodes(response.data.nodes || []);
+        }
+      } catch (err: unknown) {
+        console.error("Failed to fetch cluster nodes", err);
+      }
+    };
+
     loadFiles();
     fetchTraces();
+    fetchNodes();
 
     const interval = setInterval(() => {
       loadFiles();
       fetchTraces();
+      fetchNodes();
     }, 5000);
 
     return () => {
@@ -393,31 +409,77 @@ export default function Home() {
 
             {/* Content Area */}
             <div className="p-5 flex flex-col flex-grow">
-              {/* Quick Summary / Status */}
+              {/* Server Nodes Status */}
               <div className="mb-8">
-                <h3 className="text-sm font-medium text-white mb-4">Trace Status Indicators</h3>
-                <div className="space-y-3">
-                  {/* Extract unique services from recent traces or show mock if none */}
-                  {traces.length > 0 ? (
-                    Array.from(
-                      new Set(
-                        traces.flatMap((t) =>
-                          Object.values(t.processes).map((p) => (p as { serviceName: string }).serviceName),
-                        ),
-                      ),
-                    )
-                      .slice(0, 3)
-                      .map((svc) => (
-                        <div key={svc as string} className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                          <span className="text-sm text-slate-300 font-mono tracking-tight">
-                            {svc.toUpperCase()} <span className="text-emerald-400 ml-1">(OK)</span>
-                          </span>
+                <h3 className="text-sm font-medium text-white mb-4 tracking-tight flex items-center gap-2">
+                  <Database size={16} className="text-teal-400" />
+                  Cluster Nodes
+                </h3>
+                <div className="flex flex-col gap-3">
+                  {/* We expect exactly 3 nodes for this demo. If fewer are returned, the others are offline. */}
+                  {["naivedfs-data-node-1", "naivedfs-data-node-2", "naivedfs-data-node-3"].map((expectedNodeId) => {
+                    const node = clusterNodes.find((n) => n.nodeId === expectedNodeId);
+                    const isOnline = !!node;
+
+                    return (
+                      <div
+                        key={expectedNodeId}
+                        className={`group relative overflow-hidden rounded-xl border p-4 transition-all duration-500 backdrop-blur-md ${
+                          isOnline
+                            ? "bg-emerald-500/5 border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.05)] hover:bg-emerald-500/10 hover:border-emerald-500/40 hover:shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+                            : "bg-rose-500/5 border-rose-500/20 shadow-[0_0_20px_rgba(225,29,72,0.05)] hover:bg-rose-500/10 hover:border-rose-500/40 hover:shadow-[0_0_30px_rgba(225,29,72,0.2)]"
+                        }`}
+                      >
+                        <div
+                          className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r pointer-events-none ${
+                            isOnline
+                              ? "from-emerald-500/0 via-emerald-500/5 to-emerald-500/0"
+                              : "from-rose-500/0 via-rose-500/5 to-rose-500/0"
+                          }`}
+                        />
+                        <div className="flex items-center justify-between relative z-10">
+                          <div className="flex items-center gap-4">
+                            {/* Neon Indicator */}
+                            <div className="relative flex h-3 w-3">
+                              {isOnline && (
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              )}
+                              <span
+                                className={`relative inline-flex rounded-full h-3 w-3 shadow-[0_0_10px_currentColor] border border-white/20 ${
+                                  isOnline ? "bg-emerald-500 text-emerald-500" : "bg-rose-500 text-rose-500"
+                                }`}
+                              ></span>
+                            </div>
+
+                            <div className="flex flex-col">
+                              <span className="text-sm font-semibold text-white tracking-wide">
+                                {expectedNodeId.toUpperCase()}
+                              </span>
+                              {isOnline ? (
+                                <span className="text-xs text-slate-400 font-mono">
+                                  {node.ipAddress}:{node.port}
+                                </span>
+                              ) : (
+                                <span className="text-xs text-rose-400/80 font-mono tracking-tight">
+                                  CONNECTION_LOST
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div
+                            className={`text-[10px] font-bold tracking-widest px-2.5 py-1 rounded-full border backdrop-blur-sm ${
+                              isOnline
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                            }`}
+                          >
+                            {isOnline ? "ONLINE" : "OFFLINE"}
+                          </div>
                         </div>
-                      ))
-                  ) : (
-                    <div className="text-xs text-slate-500 italic">Awaiting telemetry data...</div>
-                  )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
