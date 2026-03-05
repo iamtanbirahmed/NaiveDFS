@@ -26,7 +26,7 @@ public class DataNodeRegistry {
                 .setIpAddress(ipAddress)
                 .setPort(port)
                 .build();
-        
+
         dataNodes.put(nodeId, new DataNodeState(info, Instant.now(), 0));
         log.info("Registered DataNode: {} at {}:{}", nodeId, ipAddress, port);
     }
@@ -48,6 +48,16 @@ public class DataNodeRegistry {
                 .collect(Collectors.toList());
     }
 
+    public long getFreeSpace(String nodeId) {
+        DataNodeState state = dataNodes.get(nodeId);
+        return state != null ? state.freeSpaceBytes : 0L;
+    }
+
+    public DataNodeInfo getNodeInfo(String nodeId) {
+        DataNodeState state = dataNodes.get(nodeId);
+        return state != null ? state.info : null;
+    }
+
     // Runs every 5 seconds to evict dead nodes
     @Scheduled(fixedRate = 5000)
     public void checkNodeHealth() {
@@ -63,7 +73,8 @@ public class DataNodeRegistry {
         for (String deadNode : deadNodes) {
             log.warn("DataNode {} has timed out. Removing from registry.", deadNode);
             dataNodes.remove(deadNode);
-            // TODO: In a real implementation, we should trigger block replication for blocks that were on this node
+            // TODO: In a real implementation, we should trigger block replication for
+            // blocks that were on this node
         }
     }
 

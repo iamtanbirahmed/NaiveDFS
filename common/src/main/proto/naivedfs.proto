@@ -65,6 +65,7 @@ service ClientToMasterService {
   rpc CreateFile (CreateFileRequest) returns (FileLocationResponse);
   rpc GetFileLocation (GetFileRequest) returns (FileLocationResponse);
   rpc ListFiles (Empty) returns (FileListResponse);
+  rpc GetNodeDetails (NodeDetailsRequest) returns (NodeDetailsResponse);
 }
 
 message Empty {}
@@ -100,6 +101,25 @@ message DataNodeInfo {
   string data_node_id = 1;
   string ip_address = 2;
   int32 port = 3;
+}
+
+message NodeDetailsRequest {
+  string data_node_id = 1;
+}
+
+message NodeDetailsResponse {
+  bool success = 1;
+  string message = 2;
+  DataNodeInfo node_info = 3;
+  int64 free_space_bytes = 4;
+  repeated NodeBlockInfo blocks = 5;
+}
+
+message NodeBlockInfo {
+  string block_id = 1;
+  int64 block_size = 2;
+  string filename = 3;
+  bool is_leader = 4;
 }
 
 // ============================================

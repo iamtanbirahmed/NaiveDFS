@@ -164,4 +164,48 @@ public class ClientToMasterServiceImpl extends ClientToMasterServiceGrpc.ClientT
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
+
+  @Override
+  public void getNodeDetails(NodeDetailsRequest request, StreamObserver<NodeDetailsResponse> responseObserver) {
+    String nodeId = request.getDataNodeId();
+    DataNodeInfo nodeInfo = dataNodeRegistry.getNodeInfo(nodeId);
+
+    if (nodeInfo == null) {
+      responseObserver.onNext(NodeDetailsResponse.newBuilder()
+          .setSuccess(false)
+          .setMessage("Node not found")
+          .build());
+      responseObserver.onCompleted();
+      return;
+    }
+
+    long freeSpace = dataNodeRegistry.getFreeSpace(nodeId);
+    List<String> blockIds = metadataStore.getBlocksForNode(nodeId);
+    List<NodeBlockInfo> blockInfos = new ArrayList<>();
+
+    for (String blockId : blockIds) {
+      String filename = metadataStore.getFileForBlock(blockId);
+      List<String> locations = metadataStore.getBlockLocations(blockId);
+      boolean isLeader = !locations.isEmpty() && locations.get(0).equals(nodeId);
+
+      NodeBlockInfo info = NodeBlockInfo.newBuilder()
+          .setBlockId(blockId)
+          .setBlockSize(BLOCK_SIZE)
+          .setFilename(filename != null ? filename : "Unknown")
+          .setIsLeader(isLeader)
+          .build();
+      blockInfos.add(info);
+    }
+
+    NodeDetailsResponse response = NodeDetailsResponse.newBuilder()
+        .setSuccess(true)
+        .setMessage("Node details retrieved")
+        .setNodeInfo(nodeInfo)
+        .setFreeSpaceBytes(freeSpace)
+        .addAllBlocks(blockInfos)
+        .build();
+
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
 }

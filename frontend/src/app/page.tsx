@@ -12,12 +12,12 @@ import {
   FolderUp,
   Activity,
   Network,
-  Layers,
   Database,
   Clock,
   ServerCog,
   ArrowRight,
 } from "lucide-react";
+import FileDetailsModal from "../components/FileDetailsModal";
 
 interface NodeInfo {
   id: string;
@@ -41,6 +41,7 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [files, setFiles] = useState<string[]>([]);
   const [fileMetadata, setFileMetadata] = useState<FileMetadata | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Telemetry States
   const [traces, setTraces] = useState<
@@ -212,6 +213,7 @@ export default function Home() {
         params: { filename: filename },
       });
       setFileMetadata(response.data);
+      setIsModalOpen(true);
       setStatus({ type: "success", message: `Successfully loaded map for '${filename}'` });
     } catch (err: unknown) {
       setStatus({
@@ -334,84 +336,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 w-full">
-        {/* Live Fragmentation Explorer */}
-        <div className="w-full glass-card p-8 animate-fade-in-up flex flex-col" style={{ animationDelay: "250ms" }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-teal-500/20 text-teal-400">
-                <Network size={24} />
-              </div>
-              <h2 className="text-2xl font-bold text-white">Live Fragmentation Explorer</h2>
-            </div>
-            {fileMetadata && (
-              <button
-                onClick={() => setFileMetadata(null)}
-                className="px-4 py-2 text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors border border-slate-700"
-              >
-                Close Map
-              </button>
-            )}
-          </div>
-
-          <p className="text-slate-400 mb-6">
-            Click the &apos;Details&apos; icon on any file above to see exactly how it is chunked into 1KB blocks and
-            distributed across the DataNodes in real-time.
-          </p>
-
-          {fileMetadata && (
-            <div className="animate-fade-in-up">
-              <div className="flex items-center gap-2 mb-4 p-4 rounded-xl bg-slate-800/50 border border-slate-700">
-                <Layers className="text-emerald-400" size={20} />
-                <span className="text-white font-medium">File: {fileMetadata.filename}</span>
-                <span className="text-slate-400 ml-auto">{fileMetadata.blocks.length} Total Blocks</span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {fileMetadata.blocks.map((block: BlockInfo, idx: number) => (
-                  <div
-                    key={block.blockId}
-                    className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/60 transition-colors"
-                  >
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-xs font-bold px-2 py-1 rounded bg-slate-700 text-slate-300">
-                        Block {idx + 1}
-                      </span>
-                      <span className="text-xs text-slate-400">{block.blockSize} bytes</span>
-                    </div>
-
-                    <div className="text-[10px] font-mono text-slate-500 mb-4 truncate" title={block.blockId}>
-                      ID: {block.blockId}
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-sm bg-blue-500/10 border border-blue-500/20 p-2 rounded-lg">
-                        <Server size={14} className="text-blue-400" />
-                        <span className="text-blue-100 font-medium text-xs truncate">
-                          Leader: {block.leaderNode.id}
-                        </span>
-                      </div>
-
-                      {block.followerNodes.map((fn: NodeInfo) => (
-                        <div
-                          key={fn.id}
-                          className="flex items-center gap-2 text-sm bg-purple-500/10 border border-purple-500/20 p-2 rounded-lg pl-6 relative"
-                        >
-                          {/* Connecting line simulating a tree/graph */}
-                          <div className="absolute left-3.5 top-[-10px] bottom-1/2 w-px bg-slate-600"></div>
-                          <div className="absolute left-3.5 top-1/2 w-2 h-px bg-slate-600"></div>
-                          <Database size={12} className="text-purple-400" />
-                          <span className="text-purple-100/80 text-xs truncate">Replica: {fn.id}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
+      <div className="grid grid-cols-1 gap-8 w-full">
         {/* Live Telemetry Dashboard */}
         <div className="w-full glass-card p-8 animate-fade-in-up flex flex-col" style={{ animationDelay: "300ms" }}>
           <div className="flex items-center gap-3 mb-6">
@@ -536,6 +461,9 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* File Details Modal */}
+      <FileDetailsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} fileMetadata={fileMetadata} />
     </div>
   );
 }
