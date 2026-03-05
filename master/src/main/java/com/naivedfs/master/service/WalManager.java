@@ -32,6 +32,13 @@ public class WalManager {
       Files.createDirectories(path.getParent());
     }
 
+    // Temporary fix: Wipe WAL on restart to clear stale file metadata since block
+    // reports aren't repopulating yet
+    if (Files.exists(path)) {
+      Files.delete(path);
+      log.info("Temporary fix: Deleted existing WAL file at startup to enforce clean slate: {}", walFilePath);
+    }
+
     // Open the WAL in append mode, create if it doesn't exist
     this.writer = Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     log.info("Initialized Write-Ahead Log at {}", walFilePath);
