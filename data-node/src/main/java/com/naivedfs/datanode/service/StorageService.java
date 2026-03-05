@@ -26,6 +26,18 @@ public class StorageService {
     Path path = Paths.get(storagePath);
     if (!Files.exists(path)) {
       Files.createDirectories(path);
+    } else {
+      // Temporary fix: wipe block data on restart to avoid orphaned blocks
+      try (Stream<Path> stream = Files.list(path)) {
+        stream.forEach(file -> {
+          try {
+            Files.delete(file);
+          } catch (IOException e) {
+            log.error("Failed to delete stale block file: {}", file);
+          }
+        });
+      }
+      log.info("Temporary fix: Deleted existing block chunks at startup to enforce clean slate");
     }
     log.info("Initialized DataNode storage at {}", path.toAbsolutePath());
   }

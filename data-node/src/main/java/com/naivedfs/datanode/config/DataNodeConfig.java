@@ -13,7 +13,8 @@ public class DataNodeConfig {
   // We generate a random UUID for the DataNode if none is provided.
   // In a real scenario, this would be persisted on disk so restarted nodes
   // maintain their identity.
-  private String nodeId = UUID.randomUUID().toString();
+  @Value("${DATA_NODE_ID:#{T(java.util.UUID).randomUUID().toString()}}")
+  private String nodeId;
 
   @Value("${grpc.server.port:9091}")
   private int port;

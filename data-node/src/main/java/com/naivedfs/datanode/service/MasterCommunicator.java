@@ -75,10 +75,15 @@ public class MasterCommunicator {
           .build();
 
       HeartbeatResponse res = masterStub.sendHeartbeat(req);
-      // Ignore response for now since we haven't implemented block
-      // replication/deletion commands
+    } catch (io.grpc.StatusRuntimeException e) {
+      if (e.getStatus().getCode() == io.grpc.Status.Code.NOT_FOUND) {
+        log.warn("Master does not recognize this node (NOT_FOUND). Registering again...");
+        registerWithMaster();
+      } else {
+        log.warn("Heartbeat failed with gRPC error: {}", e.getMessage());
+      }
     } catch (Exception e) {
-      log.warn("Heartbeat failed: {}", e.getMessage());
+      log.warn("Heartbeat failed with unexpected error: {}", e.getMessage());
     }
   }
 

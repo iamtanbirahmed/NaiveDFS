@@ -2,6 +2,7 @@ package com.naivedfs.controlplane.controller;
 
 import com.google.protobuf.ByteString;
 import com.naivedfs.grpc.*;
+import com.naivedfs.grpc.Empty;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
@@ -254,6 +255,97 @@ public class FileController {
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
         .body(resource);
+  }
+
+  @GetMapping("/list")
+  public ResponseEntity<java.util.Map<String, Object>> listFiles() {
+    log.info("Fetching list of all files from Master");
+
+    FileListResponse listRes = masterStub.listFiles(Empty.newBuilder().build());
+
+    if (!listRes.getSuccess()) {
+      return ResponseEntity.internalServerError().body(java.util.Map.of(
+          "success", false,
+          "message", "Failed to retrieve file list"));
+    }
+
+    return ResponseEntity.ok(java.util.Map.of(
+        "success", true,
+        "files", listRes.getFilenamesList()));
+  }
+
+  @GetMapping("/nodes/{nodeId}")
+  public ResponseEntity<java.util.Map<String, Object>> getNodeDetails(@PathVariable String nodeId) {
+    log.info("Fetching details for node: {}", nodeId);
+
+    try {
+      NodeDetailsRequest req = NodeDetailsRequest.newBuilder().setDataNodeId(nodeId).build();
+      NodeDetailsResponse res = masterStub.getNodeDetails(req);
+
+      if (!res.getSuccess()) {
+        return ResponseEntity.status(404).body(java.util.Map.of(
+            "success", false,
+            "message", res.getMessage()));
+      }
+
+      List<java.util.Map<String, Object>> blocksList = new java.util.ArrayList<>();
+      for (NodeBlockInfo block : res.getBlocksList()) {
+        blocksList.add(java.util.Map.of(
+            "blockId", block.getBlockId(),
+            "blockSize", block.getBlockSize(),
+            "filename", block.getFilename(),
+            "isLeader", block.getIsLeader()));
+      }
+
+      DataNodeInfo nodeInfo = res.getNodeInfo();
+      return ResponseEntity.ok(java.util.Map.of(
+          "success", true,
+          "nodeId", nodeInfo.getDataNodeId(),
+          "ipAddress", nodeInfo.getIpAddress(),
+          "port", nodeInfo.getPort(),
+          "freeSpaceBytes", res.getFreeSpaceBytes(),
+          "blocks", blocksList));
+
+    } catch (Exception e) {
+      log.error("Failed to fetch node details", e);
+      return ResponseEntity.status(500).body(java.util.Map.of(
+          "success", false,
+          "message", "Failed to fetch node details: " + e.getMessage()));
+    }
+  }
+
+  @GetMapping("/nodes")
+  public ResponseEntity<java.util.Map<String, Object>> getClusterNodes() {
+    log.info("Fetching cluster node status");
+
+    try {
+      ClusterStatusResponse res = masterStub.getClusterStatus(Empty.newBuilder().build());
+
+      if (!res.getSuccess()) {
+        return ResponseEntity.status(500).body(java.util.Map.of(
+            "success", false,
+            "message", res.getMessage()));
+      }
+
+      List<java.util.Map<String, Object>> nodesList = new java.util.ArrayList<>();
+      for (DataNodeInfo node : res.getActiveNodesList()) {
+        nodesList.add(java.util.Map.of(
+            "nodeId", node.getDataNodeId(),
+            "ipAddress", node.getIpAddress(),
+            "port", node.getPort(),
+            "status", "OK"));
+      }
+
+      return ResponseEntity.ok(java.util.Map.of(
+          "success", true,
+          "nodes", nodesList));
+
+    } catch (Exception e) {
+      log.error("Failed to fetch cluster status", e);
+      return ResponseEntity.status(500).body(java.util.Map.of(
+          "success", false,
+          "message", "Failed to fetch cluster status: " + e.getMessage()));
+    }
   }
 
   @PreDestroy

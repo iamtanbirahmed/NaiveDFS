@@ -66,6 +66,10 @@ public class MetadataStore implements WalManager.WalReplayHandler {
     return fileToBlocksMap.containsKey(filename);
   }
 
+  public java.util.Set<String> getAllFiles() {
+    return fileToBlocksMap.keySet();
+  }
+
   public List<String> getFileBlocks(String filename) {
     return fileToBlocksMap.get(filename);
   }
@@ -101,5 +105,19 @@ public class MetadataStore implements WalManager.WalReplayHandler {
 
   public List<String> getBlockLocations(String blockId) {
     return blockLocationMap.getOrDefault(blockId, new ArrayList<>());
+  }
+
+  public List<String> getBlocksForNode(String nodeId) {
+    List<String> nodeBlocks = new ArrayList<>();
+    for (Map.Entry<String, List<String>> entry : blockLocationMap.entrySet()) {
+      if (entry.getValue().contains(nodeId)) {
+        nodeBlocks.add(entry.getKey());
+      }
+    }
+    return nodeBlocks;
+  }
+
+  public String getFileForBlock(String blockId) {
+    return blockToFileMap.get(blockId);
   }
 }

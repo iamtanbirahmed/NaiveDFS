@@ -26,19 +26,21 @@ public class DataNodeRegistry {
                 .setIpAddress(ipAddress)
                 .setPort(port)
                 .build();
-        
+
         dataNodes.put(nodeId, new DataNodeState(info, Instant.now(), 0));
         log.info("Registered DataNode: {} at {}:{}", nodeId, ipAddress, port);
     }
 
-    public void updateHeartbeat(String nodeId, long freeSpaceBytes) {
+    public boolean updateHeartbeat(String nodeId, long freeSpaceBytes) {
         DataNodeState state = dataNodes.get(nodeId);
         if (state != null) {
             state.lastHeartbeat = Instant.now();
             state.freeSpaceBytes = freeSpaceBytes;
             log.debug("Heartbeat received from DataNode: {}. Free space: {} bytes", nodeId, freeSpaceBytes);
+            return true;
         } else {
             log.warn("Heartbeat received from unknown DataNode: {}. Please register first.", nodeId);
+            return false;
         }
     }
 
@@ -46,6 +48,16 @@ public class DataNodeRegistry {
         return dataNodes.values().stream()
                 .map(state -> state.info)
                 .collect(Collectors.toList());
+    }
+
+    public long getFreeSpace(String nodeId) {
+        DataNodeState state = dataNodes.get(nodeId);
+        return state != null ? state.freeSpaceBytes : 0L;
+    }
+
+    public DataNodeInfo getNodeInfo(String nodeId) {
+        DataNodeState state = dataNodes.get(nodeId);
+        return state != null ? state.info : null;
     }
 
     // Runs every 5 seconds to evict dead nodes
@@ -63,7 +75,8 @@ public class DataNodeRegistry {
         for (String deadNode : deadNodes) {
             log.warn("DataNode {} has timed out. Removing from registry.", deadNode);
             dataNodes.remove(deadNode);
-            // TODO: In a real implementation, we should trigger block replication for blocks that were on this node
+            // TODO: In a real implementation, we should trigger block replication for
+            // blocks that were on this node
         }
     }
 
