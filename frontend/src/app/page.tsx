@@ -31,7 +31,11 @@ export default function Home() {
 
   // Telemetry States
   const [traces, setTraces] = useState<
-    { traceID: string; spans: { duration: number; startTime: number }[]; processes: Record<string, unknown> }[]
+    {
+      traceID: string;
+      spans: { duration: number; startTime: number; operationName?: string }[];
+      processes: Record<string, unknown>;
+    }[]
   >([]);
   const [loadingTraces, setLoadingTraces] = useState(true);
 
@@ -39,6 +43,7 @@ export default function Home() {
     type: "idle",
     message: "",
   });
+  const [isDragging, setIsDragging] = useState(false);
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,9 +104,20 @@ export default function Home() {
 
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       setFile(e.dataTransfer.files[0]);
     }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -231,52 +247,73 @@ export default function Home() {
           <h2 className="text-2xl font-semibold text-white tracking-tight">Data Pipeline</h2>
 
           {/* Upload Widget */}
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden group">
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden group hover:border-white/15 transition-colors">
             {/* Glowing Accent */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 to-blue-500 opacity-70"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-500 opacity-70 group-hover:opacity-100 transition-opacity"></div>
 
             <div
-              className={`border border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center transition-all cursor-pointer shadow-inner
-                ${file ? "border-teal-500/50 bg-teal-500/5" : "border-slate-600/50 hover:border-slate-400/80 hover:bg-white/5"}`}
-              onDragOver={(e) => e.preventDefault()}
+              className={`relative border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center transition-all duration-300 cursor-pointer overflow-hidden
+                ${
+                  isDragging || file
+                    ? "border-emerald-400/50 bg-emerald-500/10 shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]"
+                    : "border-slate-600/50 hover:border-slate-400/80 hover:bg-white/5 shadow-inner"
+                }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
               onDrop={handleFileDrop}
               onClick={() => fileInputRef.current?.click()}
             >
+              {isDragging && (
+                <div className="absolute inset-0 bg-emerald-500/5 animate-pulse transition-opacity duration-300"></div>
+              )}
               <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
               {file ? (
-                <div className="flex flex-col items-center animate-fade-in-up">
-                  <File size={36} className="text-teal-400 mb-3" />
+                <div className="flex flex-col items-center animate-fade-in-up relative z-10">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4">
+                    <CheckCircle2 size={32} className="text-emerald-400" />
+                  </div>
                   <p className="text-white font-medium text-lg">{file.name}</p>
-                  <p className="text-slate-400 text-sm mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB ready</p>
+                  <p className="text-slate-400 text-sm mt-1">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB • Ready to sequence
+                  </p>
                 </div>
               ) : (
-                <div className="flex flex-col items-center">
-                  <Upload size={32} className="text-slate-400 mb-3 group-hover:text-teal-400 transition-colors" />
-                  <p className="text-slate-300 font-medium text-lg">Drop files here or click to upload</p>
-                  <p className="text-slate-500 text-sm mt-1">Max cluster chunk size: 128MB per block</p>
+                <div className="flex flex-col items-center relative z-10">
+                  <div
+                    className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-colors duration-300 ${isDragging ? "bg-emerald-500/20 text-emerald-400" : "bg-white/5 text-slate-400 group-hover:text-emerald-400"}`}
+                  >
+                    <Upload size={32} />
+                  </div>
+                  <p
+                    className={`font-medium text-lg transition-colors duration-300 ${isDragging ? "text-emerald-400" : "text-slate-300"}`}
+                  >
+                    {isDragging ? "Drop to initialize transfer" : "Drop blocks here or click to index"}
+                  </p>
+                  <p className="text-slate-500 text-sm mt-2">Maximum fragment payload: 128MB per cluster limit.</p>
                 </div>
               )}
             </div>
 
             {/* Progress Bar & Actions */}
-            <div className="flex items-center justify-between mt-6 gap-4">
-              <div className="flex-grow flex items-center gap-3">
-                <div className="h-2 flex-grow bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-teal-500 to-blue-500 transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  ></div>
+            <div className={`mt-6 transition-all duration-300 ${file ? "opacity-100 translate-y-0" : "opacity-50"}`}>
+              <div className="flex items-center justify-between mt-2 gap-4">
+                <div className="flex-grow flex flex-col gap-2">
+                  <div className="h-2 flex-grow bg-slate-800 rounded-full overflow-hidden shadow-inner w-full">
+                    <div
+                      className={`h-full transition-all duration-300 ${status.type === "success" ? "bg-emerald-500" : "bg-gradient-to-r from-emerald-500 via-teal-400 to-blue-500"}`}
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <span className="text-sm font-bold text-teal-400 min-w-[40px]">{progress}%</span>
-              </div>
 
-              <button
-                onClick={uploadFile}
-                disabled={!file || status.type === "loading"}
-                className="py-2.5 px-6 rounded-lg font-bold text-sm text-white bg-teal-500 hover:bg-teal-400 disabled:opacity-50 disabled:bg-slate-700 disabled:text-slate-400 transition-all shadow-[0_0_15px_rgba(20,184,166,0.2)] disabled:shadow-none whitespace-nowrap"
-              >
-                START UPLOAD
-              </button>
+                <button
+                  onClick={uploadFile}
+                  disabled={!file || status.type === "loading"}
+                  className="py-2.5 px-6 rounded-lg font-bold text-sm text-white bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 disabled:opacity-50 disabled:bg-slate-800 disabled:border-slate-800 disabled:text-slate-500 transition-all shadow-lg whitespace-nowrap group focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                >
+                  {status.type === "loading" ? "TRANSFERRING..." : "START UPLOAD"}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -384,10 +421,46 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Latency Graph */}
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-white mb-3">Recent Trace Latency</h3>
+                <div className="flex items-end gap-[1px] h-16 w-full border-b border-white/10 pb-1 pr-1 pl-1">
+                  {traces
+                    .slice(0, 30)
+                    .reverse()
+                    .map((trace, i) => {
+                      const duration = trace.spans[0]?.duration / 1000 || 1;
+                      const maxDuration = Math.max(...traces.map((t) => t.spans[0]?.duration / 1000 || 1), 10);
+                      const height = Math.max((duration / maxDuration) * 100, 5);
+                      return (
+                        <div
+                          key={`graph-${trace.traceID}-${i}`}
+                          className="flex-1 bg-emerald-500/40 hover:bg-emerald-400 rounded-t-[1px] transition-all group/graph relative cursor-crosshair min-w-[3px]"
+                          style={{ height: `${height}%` }}
+                        >
+                          <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 opacity-0 group-hover/graph:opacity-100 bg-black text-xs text-white px-2 py-1 rounded pointer-events-none z-10 whitespace-nowrap shadow-xl">
+                            {duration.toFixed(1)}ms
+                          </div>
+                        </div>
+                      );
+                    })}
+                  {traces.length === 0 && (
+                    <div className="w-full text-center text-xs text-slate-500 self-center">
+                      No trace data available yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Log Stream Section */}
-              <div className="flex-grow flex flex-col">
-                <h3 className="text-sm font-medium text-white mb-3">Log Stream</h3>
-                <div className="flex-grow bg-[#05080f] rounded-xl border border-white/5 p-4 font-mono text-[11px] sm:text-xs overflow-y-auto max-h-[350px] custom-scrollbar shadow-inner relative">
+              <div className="flex-grow flex flex-col overflow-hidden">
+                <h3 className="text-sm font-medium text-white mb-3 flex items-center justify-between">
+                  <span>Log Stream</span>
+                  <span className="text-[10px] text-slate-500 uppercase font-mono tracking-widest bg-white/5 px-2 py-0.5 rounded">
+                    tail -f
+                  </span>
+                </h3>
+                <div className="flex-grow bg-[#0c1017] rounded-xl border border-white/5 p-4 font-mono text-[11px] overflow-y-auto overflow-x-hidden max-h-[250px] custom-scrollbar shadow-inner relative">
                   {loadingTraces && traces.length === 0 && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-6 h-6 border-2 border-indigo-500/50 border-t-indigo-500 rounded-full animate-spin"></div>
@@ -409,17 +482,20 @@ export default function Home() {
                     return (
                       <div
                         key={trace.traceID}
-                        className="mb-2 leading-relaxed opacity-90 hover:opacity-100 hover:bg-white/5 rounded px-1 -mx-1 transition-colors"
+                        className="mb-2 leading-relaxed opacity-90 hover:opacity-100 hover:bg-white/5 rounded px-2 py-1 -mx-2 transition-colors break-words whitespace-pre-wrap border border-transparent hover:border-white/5"
                       >
-                        <span className="text-teal-400">[{time}]</span>
+                        <span className="text-emerald-400">[{time}]</span>
                         <span className="text-slate-500 ml-2">({duration}ms)</span>
-                        <span className="text-purple-400 ml-2 font-semibold">[{svcStr}]</span>
-                        <span className="text-slate-300 ml-2">Trace span {trace.traceID.substring(0, 8)}</span>
+                        <span className="text-blue-400 ml-2 font-semibold">[{svcStr}]</span>
+                        <span className="text-slate-300 ml-2 break-all">
+                          {trace.spans[0]?.operationName || "Operation"} - Trace ID:{" "}
+                          <span className="opacity-70">{trace.traceID.substring(0, 16)}</span>
+                        </span>
                       </div>
                     );
                   })}
                   {/* Fading bottom edge */}
-                  <div className="sticky bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#05080f] to-transparent pointer-events-none"></div>
+                  <div className="sticky bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#0c1017] to-transparent pointer-events-none"></div>
                 </div>
               </div>
             </div>
