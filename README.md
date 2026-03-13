@@ -13,6 +13,8 @@
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
 </p>
 
+![NaiveDFS Dashboard](docs/screenshot.png)
+
 NaiveDFS is a high-availability, distributed file system written in Java (Spring Boot) inspired by architectures like Hadoop HDFS. It stores large files by breaking them down into chunks and replicating them across multiple storage nodes for fault tolerance.
 
 The project features a Master node for managing metadata, Data nodes for storing chunks with replication, a Control Plane for the client API, and a beautiful React/Next.js frontend for interacting with the cluster.
