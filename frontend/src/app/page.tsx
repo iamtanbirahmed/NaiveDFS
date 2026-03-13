@@ -487,25 +487,29 @@ export default function Home() {
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-white mb-3">Recent Trace Latency</h3>
                 <div className="flex items-end gap-[1px] h-16 w-full border-b border-white/10 pb-1 pr-1 pl-1">
-                  {traces
-                    .slice(0, 30)
-                    .reverse()
-                    .map((trace, i) => {
-                      const duration = trace.spans?.[0]?.duration ? trace.spans[0].duration / 1000 : 1;
-                      const maxDuration = Math.max(...traces.map((t) => (t.spans?.[0]?.duration ? t.spans[0].duration / 1000 : 1)), 10);
-                      const height = Math.max((duration / maxDuration) * 100, 5);
-                      return (
-                        <div
-                          key={`graph-${trace.traceID}-${i}`}
-                          className="flex-1 bg-emerald-500/40 hover:bg-emerald-400 rounded-t-[1px] transition-all group/graph relative cursor-crosshair min-w-[3px]"
-                          style={{ height: `${height}%` }}
-                        >
-                          <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 opacity-0 group-hover/graph:opacity-100 bg-black text-xs text-white px-2 py-1 rounded pointer-events-none z-10 whitespace-nowrap shadow-xl">
-                            {duration.toFixed(1)}ms
+                  {(() => {
+                    const durations = traces.map((t) => (t.spans?.[0]?.duration ?? 1000) / 1000);
+                    const maxDuration = Math.max(...durations, 10);
+                    
+                    return traces
+                      .slice(0, 30)
+                      .reverse()
+                      .map((trace, i) => {
+                        const duration = (trace.spans?.[0]?.duration ?? 1000) / 1000;
+                        const height = Math.max((duration / maxDuration) * 100, 5);
+                        return (
+                          <div
+                            key={`graph-${trace.traceID}-${i}`}
+                            className="flex-1 bg-emerald-500/40 hover:bg-emerald-400 rounded-t-[1px] transition-all group/graph relative cursor-crosshair min-w-[3px]"
+                            style={{ height: `${height}%` }}
+                          >
+                            <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 opacity-0 group-hover/graph:opacity-100 bg-black text-xs text-white px-2 py-1 rounded pointer-events-none z-10 whitespace-nowrap shadow-xl">
+                              {duration.toFixed(1)}ms
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      });
+                  })()}
                   {traces.length === 0 && (
                     <div className="w-full text-center text-xs text-slate-500 self-center">
                       No trace data available yet.

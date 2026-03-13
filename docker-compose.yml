@@ -7,7 +7,9 @@ services:
       - "16686:16686"
       - "4317:4317"
     environment:
-      - UI_THEME=dark
+      - QUERY_UI_CONFIG=/app/ui-config.json
+    volumes:
+      - ./ops/jaeger/ui-config.json:/app/ui-config.json
     networks:
       - naivedfs_net
 
