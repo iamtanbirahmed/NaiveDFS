@@ -488,10 +488,11 @@ export default function Home() {
                 <h3 className="text-sm font-medium text-white mb-3">Recent Trace Latency</h3>
                 <div className="flex items-end gap-[1px] h-16 w-full border-b border-white/10 pb-1 pr-1 pl-1">
                   {(() => {
-                    const durations = traces.map((t) => (t.spans?.[0]?.duration ?? 1000) / 1000);
+                    const validTraces = traces.filter((t) => t.spans && t.spans.length > 0 && t.spans[0]?.duration != null);
+                    const durations = validTraces.map((t) => (t.spans?.[0]?.duration ?? 1000) / 1000);
                     const maxDuration = Math.max(...durations, 10);
                     
-                    return traces
+                    return validTraces
                       .slice(0, 30)
                       .reverse()
                       .map((trace, i) => {
@@ -538,11 +539,15 @@ export default function Home() {
                   )}
 
                   {traces.map((trace) => {
-                    if (!trace.spans || trace.spans.length === 0) return null;
+                    if (!trace.spans || trace.spans.length === 0 || trace.spans[0]?.duration == null) return null;
                     const time = new Date(trace.spans[0].startTime / 1000).toTimeString().split(" ")[0];
                     const duration = (trace.spans[0].duration / 1000).toFixed(1);
                     const svcNames = Array.from(
-                      new Set(Object.values(trace.processes || {}).map((p) => (p as { serviceName: string }).serviceName)),
+                      new Set(
+                        Object.values(trace.processes || {})
+                          .filter((p) => typeof p === "object" && p !== null && "serviceName" in p && typeof (p as { serviceName: string }).serviceName === "string")
+                          .map((p) => (p as { serviceName: string }).serviceName)
+                      )
                     );
                     const svcStr = svcNames[0] || "unknown";
 
