@@ -111,13 +111,13 @@ export default function NodeDetailsPage() {
         style={{ animationDelay: "100ms" }}
       >
         {/* Node Metadata Sidebar */}
-        <div className="glass-card p-8 flex flex-col lg:col-span-1 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.05)]">
+        <div className="glass-card neon-border p-8 flex flex-col lg:col-span-1">
           <div className="flex items-center gap-4 mb-8">
             <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-400">
               <Database size={32} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">DataNode</h1>
+              <h1 className="text-2xl font-bold tracking-tight gradient-text">DataNode</h1>
               <p className="text-slate-400 font-mono text-sm max-w-[200px] truncate" title={nodeDetails.nodeId}>
                 {nodeDetails.nodeId}
               </p>
@@ -160,8 +160,8 @@ export default function NodeDetailsPage() {
         </div>
 
         {/* Blocks Grid Main Content */}
-        <div className="glass-card p-8 flex flex-col lg:col-span-2">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-700/50">
+        <div className="glass-card neon-border p-8 flex flex-col lg:col-span-2">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
             <Layers className="text-emerald-400" size={24} />
             <h2 className="text-xl font-bold text-white">Hosted Blocks ({nodeDetails.blocks.length})</h2>
           </div>
@@ -177,8 +177,9 @@ export default function NodeDetailsPage() {
               {nodeDetails.blocks.map((block) => (
                 <div
                   key={block.blockId}
-                  className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/60 transition-all hover:border-emerald-500/30 flex flex-col"
+                  className="bg-cyan-900/10 border border-cyan-500/20 rounded-xl p-5 hover:bg-cyan-900/20 transition-all hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] flex flex-col relative overflow-hidden group"
                 >
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500/50 group-hover:bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)] transition-colors"></div>
                   <div className="flex justify-between items-center mb-3">
                     <span
                       className={`text-xs font-bold px-2 py-1 rounded bg-slate-800/80 border ${block.isLeader ? "border-blue-500/30 text-blue-400" : "border-purple-500/30 text-purple-400"}`}

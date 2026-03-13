@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import java.net.InetAddress;
-import java.util.UUID;
 
 @Configuration
 public class DataNodeConfig {
@@ -13,7 +12,6 @@ public class DataNodeConfig {
   // We generate a random UUID for the DataNode if none is provided.
   // In a real scenario, this would be persisted on disk so restarted nodes
   // maintain their identity.
-  @Value("${DATA_NODE_ID:#{T(java.util.UUID).randomUUID().toString()}}")
   private String nodeId;
 
   @Value("${grpc.server.port:9091}")
@@ -23,6 +21,13 @@ public class DataNodeConfig {
 
   @PostConstruct
   public void init() {
+    String envNodeId = System.getenv("DATA_NODE_ID");
+    if (envNodeId != null && !envNodeId.trim().isEmpty()) {
+      nodeId = envNodeId.trim();
+    } else {
+      nodeId = java.util.UUID.randomUUID().toString();
+    }
+
     try {
       ipAddress = InetAddress.getLocalHost().getHostAddress();
     } catch (Exception e) {

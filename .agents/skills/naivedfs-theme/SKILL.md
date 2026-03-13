@@ -9,32 +9,32 @@ This skill defines the visual identity, color scheme, and UI components used acr
 
 ## 1. Color Palette
 
-The application uses a dark mode-first approach with slate/blue/violet tones.
+The application emphasizes a deep dark background with intense, glowing neon accents (Cyan, Emerald, and Violet).
 
-- **Background:** `#0f172a` (slate-900 like)
-- **Foreground (Text):** `#f8fafc` (slate-50 like)
-- **Primary Accent:** `#3b82f6` (blue-500)
-- **Primary Hover:** `#2563eb` (blue-600)
-- **Secondary Accent:** `#8b5cf6` (violet-500)
+- **Background:** `#030712` (gray-950 / almost black)
+- **Foreground (Text):** `#f8fafc` (slate-50)
+- **Primary Accent (Neon Cyan):** `#06b6d4` (cyan-500)
+- **Secondary Accent (Neon Emerald):** `#10b981` (emerald-500)
+- **Tertiary Accent (Neon Violet):** `#8b5cf6` (violet-500)
 
 ## 2. Background and Styling
 
-- **App Background:** A dark slate background combined with subtle radial gradients for depth.
-  - Primary CSS `radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%)`
-  - Secondary CSS `radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%)`
-- **Gradient Text:** Use for main headings to create a modern feel.
-  - Linear gradient from `#60a5fa` (blue-400) to `#c084fc` (purple-400)
+- **App Background:** Pure dark or deep slate background combined with subtle radial gradients for depth.
+  - Primary CSS `radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.15), transparent 25%)`
+  - Secondary CSS `radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.15), transparent 25%)`
+- **Gradient Text:** Use for main headings to create a glowing neon feel.
+  - Linear gradient from cyan-400 to emerald-400.
 
 ## 3. Glassmorphism Components
 
-Cards, panels, and modals should use the "glassmorphism" aesthetic.
+Cards, panels, and modals MUST use an intense "glassmorphism" aesthetic with neon glows.
 
-- **Card Background:** `rgba(30, 41, 59, 0.4)` (slate-800 at 40% opacity)
-- **Card Border:** `1px solid rgba(255, 255, 255, 0.1)` (white at 10% opacity)
-- **Blur Effect:** `backdrop-filter: blur(12px)`
+- **Card Background:** `rgba(15, 23, 42, 0.6)` (slate-900 at 60% opacity)
+- **Card Border:** `1px solid rgba(6, 182, 212, 0.3)` (cyan neon border trace)
+- **Blur Effect:** `backdrop-filter: blur(16px)`
 - **Border Radius:** `1rem`
-- **Shadow:** `0 4px 30px rgba(0, 0, 0, 0.1)`
-- **CSS Class Mapping:** `.glass-card`
+- **Shadow (Neon Glow):** `0 0 20px rgba(6, 182, 212, 0.15)`
+- **CSS Class Mapping:** `.glass-card`, `.neon-border`
 
 ## 4. Typography & Icons
 

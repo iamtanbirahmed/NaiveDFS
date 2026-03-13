@@ -46,16 +46,16 @@ export default function FileDetailsModal({ isOpen, onClose, fileMetadata }: File
   const hiddenBlocksCount = totalBlocks - visibleBlocks.length;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0f1115]/80 backdrop-blur-md animate-fade-in font-sans">
-      <div className="bg-[#13151a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-fade-in font-sans">
+      <div className="glass-card neon-border rounded-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/5 bg-white/5">
+        <div className="flex items-center justify-between p-6 border-b border-white/10 bg-black/40">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
               <Layers size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">Live Data Fragmentation</h2>
+              <h2 className="text-xl font-bold tracking-tight gradient-text">Live Data Fragmentation</h2>
               <p className="text-slate-400 text-sm mt-1 flex items-center gap-2">
                 <span>File: {fileMetadata.filename}</span>
                 <span className="text-slate-600">•</span>
@@ -77,13 +77,13 @@ export default function FileDetailsModal({ isOpen, onClose, fileMetadata }: File
             {visibleBlocks.map((block: BlockInfo, idx: number) => (
               <div
                 key={block.blockId}
-                className="group bg-white/5 border border-white/5 rounded-xl p-5 hover:bg-white/10 hover:border-white/15 transition-all relative overflow-hidden"
+                className="group bg-cyan-900/10 border border-cyan-500/20 rounded-xl p-5 hover:bg-cyan-900/20 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] transition-all relative overflow-hidden"
               >
                 {/* Accent line */}
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500/30 group-hover:bg-emerald-400 transition-colors"></div>
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500/50 group-hover:bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)] transition-colors"></div>
 
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs font-bold px-2 py-1 rounded bg-emerald-500/20 text-emerald-300">
+                  <span className="text-xs font-bold px-2 py-1 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                     Block {idx + 1}
                   </span>
                   <span className="text-xs text-slate-400 font-mono">{block.blockSize} bytes</span>
@@ -130,11 +130,11 @@ export default function FileDetailsModal({ isOpen, onClose, fileMetadata }: File
 
         {/* Footer */}
         {hiddenBlocksCount > 0 && (
-          <div className="p-4 border-t border-white/5 bg-[#0f1115] flex justify-center">
+          <div className="p-4 border-t border-white/10 bg-black/40 flex justify-center">
             <Link href={`/files/${fileMetadata.filename}`}>
-              <button className="px-6 py-2.5 rounded-lg border flex items-center gap-2 font-medium text-white border-blue-500/30 bg-blue-500/20 hover:bg-blue-500/30 hover:border-blue-500/50 transition-all group">
+              <button className="px-6 py-2.5 rounded-lg border flex items-center gap-2 font-medium text-white border-cyan-500/40 bg-cyan-500/10 hover:bg-cyan-500/20 hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all group">
                 Open Full Block Explorer ({hiddenBlocksCount} more)
-                <ArrowRight size={16} className="text-blue-400 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={16} className="text-cyan-400 group-hover:translate-x-1 transition-transform" />
               </button>
             </Link>
           </div>

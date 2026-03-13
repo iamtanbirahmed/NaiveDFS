@@ -6,6 +6,8 @@ services:
     ports:
       - "16686:16686"
       - "4317:4317"
+    environment:
+      - UI_THEME=dark
     networks:
       - naivedfs_net
 
