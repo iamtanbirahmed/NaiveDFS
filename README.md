@@ -1,7 +1,7 @@
 # NaiveDFS (Distributed File System)
 
 <p align="center">
-  <img src="https://iamtanbirahmed.github.io/images/naivedfs-logo.png" alt="NaiveDFS Logo" width="150" />
+  <img src="./logo.png" alt="NaiveDFS Logo" width="150" />
 </p>
 
 <p align="center">
@@ -13,9 +13,7 @@
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
 </p>
 
-> **Read the blog post:** [Building NaiveDFS: A High-Availability Distributed File System from Scratch](https://iamtanbirahmed.github.io/posts/2026/03/naivedfs-distributed-file-system/)
-
-![NaiveDFS Dashboard](https://iamtanbirahmed.github.io/images/naivedfs-screenshot.png)
+![NaiveDFS Dashboard](docs/screenshot.png)
 
 NaiveDFS is a high-availability, distributed file system written in Java (Spring Boot) inspired by architectures like Hadoop HDFS. It stores large files by breaking them down into chunks and replicating them across multiple storage nodes for fault tolerance.
 
